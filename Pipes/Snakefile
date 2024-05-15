@@ -5,6 +5,37 @@ configfile: "config/config.yaml"
 # needed for calling modules from the "fake package"
 parent_folder = os.path.split(os.getcwd())[0]
 
+# rules using docker
+
+rule enformer_predict_docker:
+    """Generate predictions for a job using Enformer and append results to TSV.
+
+    Input:
+    data_path -- Path to the job pickle
+    track_dict_path -- Path to the track dict (determined via wildcard & config)
+    Output:
+    prediction -- Path to the prediction TSV
+    """
+    threads: 2
+    resources: ntasks=1, mem_mb=30000, gpu=1,
+    input:
+        data_path = "pickles/{dataset}/enformer/{sample_num}.pkl",
+        track_dict_path = lambda wc: config["sample_gen_params"][wc.dataset]["enformer"]["track_dict"]
+    output:
+        tsv = "predictions/{dataset}/enformer/{sample_num}.tsv",
+    container:
+         "nvcr.io/nvidia/tensorflow:21.04-tf2-py3"
+    shell:
+        " PYTHONPATH=" + parent_folder +
+        " python3 -m Code.Scripts.enformer_predict "
+        " --data-path {input.data_path}"
+        " --track-dict-path {input.track_dict_path}"
+        " --output-file {output.tsv}"
+
+
+
+
+
 # Rules which are shortcuts to the final predictions for each experiment
 
 rule segal_promoters_enformer:
@@ -745,29 +776,6 @@ rule samplegen_fulco_in_fulco:
         " --data-path {input.data_path}"
         " --number-of-jobs {params.number_of_jobs}"
         " --output-dir {params.data_dir}"
-
-rule enformer_predict:
-    """Generate predictions for a job using Enformer and append results to TSV.
-
-    Input:
-    data_path -- Path to the job pickle
-    track_dict_path -- Path to the track dict (determined via wildcard & config)
-    Output:
-    prediction -- Path to the prediction TSV
-    """
-    threads: 2
-    resources: ntasks=1, mem_mb=30000, gpu=1,
-    input:
-        data_path = "pickles/{dataset}/enformer/{sample_num}.pkl",
-        track_dict_path = lambda wc: config["sample_gen_params"][wc.dataset]["enformer"]["track_dict"]
-    output:
-        tsv = "predictions/{dataset}/enformer/{sample_num}.tsv",
-    shell:
-        " PYTHONPATH=" + parent_folder +
-        " python3 -m Code.Scripts.enformer_predict "
-        " --data-path {input.data_path}"
-        " --track-dict-path {input.track_dict_path}"
-        " --output-file {output.tsv}"
 
 rule basenji1_predict:
     """Generate predictions for a job using Basenji1 and append results to TSV.
