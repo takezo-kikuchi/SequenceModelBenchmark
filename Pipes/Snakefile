@@ -23,7 +23,7 @@ rule enformer_predict_docker:
         track_dict_path = lambda wc: config["sample_gen_params"][wc.dataset]["enformer"]["track_dict"]
     output:
         tsv = "predictions/{dataset}/enformer/{sample_num}.tsv",
-    container:
+    singularity:
          "nvcr.io/nvidia/tensorflow:21.04-tf2-py3"
     shell:
         " PYTHONPATH=" + parent_folder +
