@@ -40,7 +40,7 @@ if gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
     except RuntimeError as e:
         print(e)
-        
+
 # as per https://stackoverflow.com/a/59571639
 def get_gpu_memory():
     command = "nvidia-smi --query-gpu=memory.free --format=csv"
@@ -52,7 +52,8 @@ def get_gpu_memory():
     return memory_free_values
 
 
-batch_size = 8 if get_gpu_memory()[0] < 45000 else 14
+# batch_size = 8 if get_gpu_memory()[0] < 45000 else 14
+batch_size = 4
 
 transform_path = 'gs://dm-enformer/models/enformer.finetuned.SAD.robustscaler-PCA500-robustscaler.transform.pkl'
 model_path = 'https://tfhub.dev/deepmind/enformer/1'
